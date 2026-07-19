@@ -55,7 +55,8 @@ export class TimesfmWebAdapter implements IForecaster {
   private async ensureEngine(): Promise<unknown> {
     if (this.engine) return this.engine
     try {
-      const mod = await import(/* @vite-ignore */ '@agentix-e/timesfm-web') as Record<string, unknown>
+      const pkgName = '@agentix-e/timesfm-web'
+      const mod = await import(pkgName) as Record<string, unknown>
       this.engine = new (mod.TimesFMWebEngine as new (cfg: Record<string, unknown>) => unknown)({
         modelName: this.config.model,
         maxContext: this.config.contextWindow,
