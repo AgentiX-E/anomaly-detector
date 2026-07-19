@@ -1,6 +1,7 @@
 # @agentix-e/anomaly-detector
 
 [![CI](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-report-blue)](https://agentix-e.github.io/anomaly-detector/coverage/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-green)](https://nodejs.org/)

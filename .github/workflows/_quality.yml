@@ -49,10 +49,12 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r test:coverage
+      - name: Merge coverage reports
+        run: node scripts/merge-coverage.mjs
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
-            packages/anomaly-detector-core/coverage/
+            coverage/
           retention-days: 7

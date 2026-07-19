@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@agentix-e/anomaly-detector-node?color=orange)](https://www.npmjs.com/package/@agentix-e/anomaly-detector-node)
 [![CI](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://agentix-e.github.io/anomaly-detector/coverage/)
+[![Coverage](https://img.shields.io/badge/coverage-report-blue)](https://agentix-e.github.io/anomaly-detector/coverage/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/AgentiX-E/anomaly-detector/blob/master/LICENSE)
 
 ## Overview
