@@ -18,6 +18,7 @@ import { JointConfidenceCalibrator } from './calibrate/joint.js'
 import { AnomalyGuidedCalibrator } from './calibrate/anomaly-guided.js'
 import type {
   IAnomalyDetector,
+  IForecaster,
   DetectorConfig,
   AnalyzedPoint,
   DataPoint,
@@ -63,8 +64,12 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
   })
 
   const hooks = config?.hooks
-  const forecaster = new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const customForecaster = (config as any)?._customForecaster as IForecaster | undefined
+  const forecaster = customForecaster ?? new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
   const calibrator = createCalibrator(config?.calibrator?.mode ?? 'forecast-guided', config?.calibrator?.jointWeights)
+
+  const DEFAULT_HORIZON = 10
 
   return {
     async analyze(
@@ -73,10 +78,11 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       opts?: { signal?: AbortSignal }
     ): Promise<AnalyzedPoint> {
       const t0 = Date.now()
-      const dResult = detect(point, context)
+      const dResult = detector.detect(point, context)
       const t1 = Date.now()
 
-      const fResult = await forecaster.forecast(context, context.length > 0 ? Math.min(32, Math.floor(context.length / 4)) : 5)
+      const h = context.length > 0 ? Math.min(32, Math.floor(context.length / 4)) : DEFAULT_HORIZON
+      const fResult = await forecaster.forecast(context, h)
       const t2 = Date.now()
 
       const t3_0 = Date.now()
@@ -102,7 +108,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
         calibrationMode: calResult.mode,
         analyzedAt: Date.now(),
         forecasterUsed: fResult.modelName,
-        metadata: {},
+        metadata: point.metadata ?? {},
       }
 
       hooks?.onAnalyze?.({
@@ -126,14 +132,15 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       return detector.detect(point, context)
     },
 
-    async forecast(_context: DataPoint[], _horizon: number): Promise<ForecastResult> {
-      throw new Error('forecast() not yet implemented. Scheduled for I2.')
+    async forecast(context: DataPoint[], horizon: number): Promise<ForecastResult> {
+      return forecaster.forecast(context, horizon)
     },
 
     async warmup(): Promise<number> {
       const t0 = Date.now()
-      // Feed a dummy point to trigger TRCF warmup
       detector.detect({ value: 0, timestamp: Date.now() }, [])
+      // Also warm up the forecaster WASM
+      await forecaster.forecast([{ value: 0, timestamp: Date.now() }], 1)
       return Date.now() - t0
     },
 

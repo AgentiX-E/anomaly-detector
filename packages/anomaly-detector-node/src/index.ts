@@ -21,18 +21,23 @@ import type { IAnomalyDetector, DetectorConfig, ForecasterType } from '@agentix-
  * with a console warning.
  *
  * @example
+ * ```ts
  * const detector = createNodeDetector({ forecaster: { type: 'timesfm' } })
+ * ```
  */
-export function createNodeDetector(config?: DetectorConfig & { forecaster?: { type?: ForecasterType } }): IAnomalyDetector {
+export function createNodeDetector(
+  config?: DetectorConfig & { forecaster?: { type?: ForecasterType; timesfm?: { model?: string; contextWindow?: number; horizon?: number } } }
+): IAnomalyDetector {
   const fcType = config?.forecaster?.type
 
   if (fcType === 'timesfm') {
     try {
-      // Dynamic import to check availability — will throw if not installed
-      const forecaster = new TimesfmNodeAdapter(config?.forecaster?.timesfm)
-      return createDetector({ ...config, forecaster: { type: 'custom' } })
-      // Note: custom type forecaster injection requires manual setup.
-      // We fall back to createDetector with anofox if timesfm fails.
+      const adapter = new TimesfmNodeAdapter(config?.forecaster?.timesfm)
+      // Inject the adapter via the custom forecaster hook
+      const cfg = { ...config }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(cfg as any)._customForecaster = adapter
+      return createDetector(cfg)
     } catch {
       console.warn('TimesFM requested but @agentix-e/timesfm-node is not installed. Falling back to anofox-forecast.')
     }
