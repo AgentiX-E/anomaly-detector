@@ -15,13 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-        with:
-  
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
-      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r lint
 
@@ -31,13 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-        with:
-  
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
-      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r typecheck
 
@@ -52,13 +46,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-        with:
-  
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r test:coverage
       - name: Upload coverage artifact

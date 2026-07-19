@@ -16,13 +16,11 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ─── Quality Gates (lint + typecheck + unit-test) ─────────────────────
   quality:
     uses: ./.github/workflows/_quality.yml
     with:
       node_version: '22'
 
-  # ─── Browser Tests ────────────────────────────────────────────────────
   browser-test:
     needs: [quality]
     runs-on: ubuntu-latest
@@ -34,13 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-        with:
-  
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Core browser tests
@@ -48,7 +43,6 @@ jobs:
       - name: Web adapter browser tests
         run: pnpm --filter @agentix-e/anomaly-detector-web test:browser -- --project=${{ matrix.browser }}
 
-  # ─── GitHub Pages — publish docs + coverage ───────────────────────────
   deploy-pages:
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: [quality, browser-test]
@@ -64,13 +58,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-        with:
-  
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
 
@@ -87,38 +78,14 @@ jobs:
           cat > docs/index.html << 'HTML'
           <!DOCTYPE html>
           <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>@agentix-e/anomaly-detector</title>
-            <style>
-              body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #1a1a2e; }
-              h1 { border-bottom: 2px solid #2563eb; padding-bottom: 0.5rem; }
-              a { color: #2563eb; }
-              .badge { display: inline-block; margin: 0.5rem 0; }
-              table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-              th, td { border: 1px solid #e5e7eb; padding: 0.5rem; text-align: left; }
-              th { background: #f3f4f6; }
-              code { background: #f3f4f6; padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.9em; }
-            </style>
-          </head>
-          <body>
-            <h1>@agentix-e/anomaly-detector</h1>
-            <p>Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).</p>
-            <h2>Packages</h2>
-            <table>
-              <tr><th>Package</th><th>Runtime</th><th>Description</th></tr>
-              <tr><td><code>@agentix-e/anomaly-detector-core</code></td><td>Node + Browser</td><td>Detection, forecasting, calibration</td></tr>
-              <tr><td><code>@agentix-e/anomaly-detector-node</code></td><td>Node.js</td><td>TimesFM foundation-model forecasting</td></tr>
-              <tr><td><code>@agentix-e/anomaly-detector-web</code></td><td>Browser</td><td>TimesFM Web (onnxruntime-web) forecasting</td></tr>
-            </table>
-            <h2>Links</h2>
-            <ul>
-              <li><a href="https://github.com/AgentiX-E/anomaly-detector">GitHub Repository</a></li>
-              <li><a href="coverage/">Coverage Report</a></li>
-            </ul>
-          </body>
-          </html>
+          <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>@agentix-e/anomaly-detector</title>
+          <style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#1a1a2e}h1{border-bottom:2px solid #2563eb;padding-bottom:.5rem}a{color:#2563eb}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #e5e7eb;padding:.5rem;text-align:left}th{background:#f3f4f6}code{background:#f3f4f6;padding:.15rem .3rem;border-radius:3px;font-size:.9em}</style></head>
+          <body><h1>@agentix-e/anomaly-detector</h1><p>Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).</p>
+          <h2>Packages</h2><table><tr><th>Package</th><th>Runtime</th><th>Description</th></tr>
+          <tr><td><code>@agentix-e/anomaly-detector-core</code></td><td>Node + Browser</td><td>Detection, forecasting, calibration</td></tr>
+          <tr><td><code>@agentix-e/anomaly-detector-node</code></td><td>Node.js</td><td>TimesFM foundation-model forecasting</td></tr>
+          <tr><td><code>@agentix-e/anomaly-detector-web</code></td><td>Browser</td><td>TimesFM Web forecasting</td></tr></table>
+          <h2>Links</h2><ul><li><a href="https://github.com/AgentiX-E/anomaly-detector">GitHub</a></li><li><a href="coverage/">Coverage</a></li></ul></body></html>
           HTML
           echo "[deploy-pages] Landing page generated"
 
