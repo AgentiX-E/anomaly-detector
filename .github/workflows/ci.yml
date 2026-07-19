@@ -78,14 +78,28 @@ jobs:
           cat > docs/index.html << 'HTML'
           <!DOCTYPE html>
           <html lang="en">
-          <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>@agentix-e/anomaly-detector</title>
-          <style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#1a1a2e}h1{border-bottom:2px solid #2563eb;padding-bottom:.5rem}a{color:#2563eb}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #e5e7eb;padding:.5rem;text-align:left}th{background:#f3f4f6}code{background:#f3f4f6;padding:.15rem .3rem;border-radius:3px;font-size:.9em}</style></head>
-          <body><h1>@agentix-e/anomaly-detector</h1><p>Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).</p>
+          <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>@agentix-e/anomaly-detector — Embedded Time-Series Anomaly Detection Engine</title>
+          <meta name="description" content="Embedded time-series anomaly detection engine — dual-runtime (Node.js + Browser), RRCF streaming, 40+ forecasting models, TimesFM foundation model, Shapley attribution. Zero-config, one-line startup.">
+          <meta name="keywords" content="anomaly detection, time-series, forecasting, RRCF, TimesFM, machine learning, streaming, TypeScript, browser, Node.js, AIOps, monitoring">
+          <meta property="og:title" content="@agentix-e/anomaly-detector — Embedded Time-Series Anomaly Detection Engine">
+          <meta property="og:description" content="Dual-runtime anomaly detection: RRCF streaming, 40+ forecasting models, TimesFM foundation model, Shapley attribution. Zero-config startup.">
+          <meta property="og:type" content="website">
+          <meta property="og:url" content="https://agentix-e.github.io/anomaly-detector/">
+          <meta property="og:site_name" content="AgentiX-E">
+          <meta name="twitter:card" content="summary_large_image">
+          <meta name="twitter:title" content="@agentix-e/anomaly-detector">
+          <meta name="twitter:description" content="Embedded time-series anomaly detection engine. RRCF, 40+ models, TimesFM, Shapley attribution.">
+          <style>body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#1a1a2e}h1{border-bottom:2px solid #2563eb;padding-bottom:.5rem}a{color:#2563eb}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #e5e7eb;padding:.5rem;text-align:left}th{background:#f3f4f6}code{background:#f3f4f6;padding:.15rem .3rem;border-radius:3px;font-size:.9em}</style>
+          </head>
+          <body><h1>@agentix-e/anomaly-detector</h1><p>Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser). Zero-config startup — one line to production-grade anomaly detection with forecast-enhanced calibration.</p>
           <h2>Packages</h2><table><tr><th>Package</th><th>Runtime</th><th>Description</th></tr>
-          <tr><td><code>@agentix-e/anomaly-detector-core</code></td><td>Node + Browser</td><td>Detection, forecasting, calibration</td></tr>
+          <tr><td><code>@agentix-e/anomaly-detector-core</code></td><td>Node + Browser</td><td>Detection, forecasting (anofox), calibration</td></tr>
           <tr><td><code>@agentix-e/anomaly-detector-node</code></td><td>Node.js</td><td>TimesFM foundation-model forecasting</td></tr>
-          <tr><td><code>@agentix-e/anomaly-detector-web</code></td><td>Browser</td><td>TimesFM Web forecasting</td></tr></table>
-          <h2>Links</h2><ul><li><a href="https://github.com/AgentiX-E/anomaly-detector">GitHub</a></li><li><a href="coverage/">Coverage</a></li></ul></body></html>
+          <tr><td><code>@agentix-e/anomaly-detector-web</code></td><td>Browser</td><td>TimesFM Web (onnxruntime-web) forecasting</td></tr></table>
+          <h2>Links</h2><ul><li><a href="https://github.com/AgentiX-E/anomaly-detector">GitHub Repository</a></li><li><a href="https://www.npmjs.com/package/@agentix-e/anomaly-detector-core">npm Package</a></li><li><a href="coverage/">Coverage Report</a></li></ul></body></html>
           HTML
           echo "[deploy-pages] Landing page generated"
 
@@ -98,24 +112,5 @@ jobs:
           path: docs
 
       - name: Deploy to GitHub Pages
-        id: deploy1
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-
-      - name: Retry deploy
-        id: deploy2
-        if: steps.deploy1.outcome == 'failure'
-        uses: actions/deploy-pages@v4
-
-      - name: Collect page URL
         id: deployment
-        if: always()
-        run: |
-          if [ "${{ steps.deploy1.outcome }}" = "success" ]; then
-            echo "page_url=${{ steps.deploy1.outputs.page_url }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ steps.deploy2.outcome }}" = "success" ]; then
-            echo "page_url=${{ steps.deploy2.outputs.page_url }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "Page deployment failed after retry" >&2
-            exit 1
-          fi
+        uses: actions/deploy-pages@v4
