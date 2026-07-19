@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  # ─── Quality Gates ─────────────────────────────────────────────────────
+  quality:
+    uses: ./.github/workflows/_quality.yml
+    with:
+      node_version: '22'
+
+  # ─── Browser Tests ────────────────────────────────────────────────────
+  browser-test:
+    needs: [quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm config set approve-builds true 2>/dev/null || true
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Core browser tests
+        run: pnpm --filter @agentix-e/anomaly-detector-core test:browser -- --project=${{ matrix.browser }}
+      - name: Web adapter browser tests
+        run: pnpm --filter @agentix-e/anomaly-detector-web test:browser -- --project=${{ matrix.browser }}
+
+  # ─── Publish npm Packages (OIDC) ──────────────────────────────────────
+  publish-npm:
+    needs: [quality, browser-test]
+    if: ${{ !cancelled() && needs.quality.result == 'success' && needs.browser-test.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+
+      - run: pnpm config set approve-builds true 2>/dev/null || true
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r build
+
+      # npm 11.x (bundled with Node 24) natively supports OIDC for publish.
+      # Node 22 bundles npm 10.x which falls back to authToken and causes
+      # E404 after successful provenance signing.
+      - name: Publish to npm (OIDC)
+        run: |
+          for pkg in anomaly-detector-core anomaly-detector-node anomaly-detector-web; do
+            cd "packages/${pkg}"
+            PKG_NAME=$(node -p "require('./package.json').name")
+            PKG_VER=$(node -p "require('./package.json').version")
+            if npm view "${PKG_NAME}@${PKG_VER}" version >/dev/null 2>&1; then
+              echo "SKIP ${PKG_NAME}@${PKG_VER} — already published"
+              cd ../..
+              continue
+            fi
+            npm publish --access public --provenance
+            cd ../..
+          done
+
+      - name: npm publish summary
+        run: |
+          echo "### npm Packages Published" >> $GITHUB_STEP_SUMMARY
+          for pkg in packages/anomaly-detector-core packages/anomaly-detector-node packages/anomaly-detector-web; do
+            name=$(node -p "require('./${pkg}/package.json').name")
+            version=$(node -p "require('./${pkg}/package.json').version")
+            echo "- \`${name}\` @ ${version}" >> $GITHUB_STEP_SUMMARY
+          done

@@ -1,75 +1,30 @@
 name: CI
 
 on:
-  push:
-    branches: [master]
   pull_request:
-    branches: [master]
+    branches: [master, main]
+  push:
+    branches: [master, main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r lint
+  # ─── Quality Gates (lint + typecheck + unit-test) ─────────────────────
+  quality:
+    uses: ./.github/workflows/_quality.yml
+    with:
+      node_version: '22'
 
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r typecheck
-
-  unit-test-core:
-    name: Core Tests (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18, 20, 22]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @agentix-e/anomaly-detector-core test -- --coverage
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-core-${{ matrix.node-version }}
-          path: packages/anomaly-detector-core/coverage/
-
+  # ─── Browser Tests ────────────────────────────────────────────────────
   browser-test:
-    name: Browser Tests (${{ matrix.browser }})
+    needs: [quality]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -77,35 +32,123 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 10
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: pnpm --filter @agentix-e/anomaly-detector-core test:browser -- --project=${{ matrix.browser }}
+      - name: Core browser tests
+        run: pnpm --filter @agentix-e/anomaly-detector-core test:browser -- --project=${{ matrix.browser }}
+      - name: Web adapter browser tests
+        run: pnpm --filter @agentix-e/anomaly-detector-web test:browser -- --project=${{ matrix.browser }}
 
-  publish-dry-run:
-    name: Publish (dry-run)
-    if: github.event_name == 'pull_request'
+  # ─── GitHub Pages — publish docs + coverage ───────────────────────────
+  deploy-pages:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: [quality, browser-test]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [lint, typecheck, unit-test-core]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 10
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm config set approve-builds true 2>/dev/null || true
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @agentix-e/anomaly-detector-core build
-      - run: pnpm --filter @agentix-e/anomaly-detector-core pack --dry-run
-      - run: pnpm --filter @agentix-e/anomaly-detector-node pack --dry-run
-      - run: pnpm --filter @agentix-e/anomaly-detector-web pack --dry-run
+      - run: pnpm -r build
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: docs/coverage
+        continue-on-error: true
+
+      - name: Prepare GitHub Pages
+        run: |
+          mkdir -p docs/pages
+          cat > docs/index.html << 'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>@agentix-e/anomaly-detector</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #1a1a2e; }
+              h1 { border-bottom: 2px solid #2563eb; padding-bottom: 0.5rem; }
+              a { color: #2563eb; }
+              .badge { display: inline-block; margin: 0.5rem 0; }
+              table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+              th, td { border: 1px solid #e5e7eb; padding: 0.5rem; text-align: left; }
+              th { background: #f3f4f6; }
+              code { background: #f3f4f6; padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.9em; }
+            </style>
+          </head>
+          <body>
+            <h1>@agentix-e/anomaly-detector</h1>
+            <p>Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).</p>
+            <h2>Packages</h2>
+            <table>
+              <tr><th>Package</th><th>Runtime</th><th>Description</th></tr>
+              <tr><td><code>@agentix-e/anomaly-detector-core</code></td><td>Node + Browser</td><td>Detection, forecasting, calibration</td></tr>
+              <tr><td><code>@agentix-e/anomaly-detector-node</code></td><td>Node.js</td><td>TimesFM foundation-model forecasting</td></tr>
+              <tr><td><code>@agentix-e/anomaly-detector-web</code></td><td>Browser</td><td>TimesFM Web (onnxruntime-web) forecasting</td></tr>
+            </table>
+            <h2>Links</h2>
+            <ul>
+              <li><a href="https://github.com/AgentiX-E/anomaly-detector">GitHub Repository</a></li>
+              <li><a href="coverage/">Coverage Report</a></li>
+            </ul>
+          </body>
+          </html>
+          HTML
+          echo "[deploy-pages] Landing page generated"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deploy1
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Retry deploy
+        id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+
+      - name: Collect page URL
+        id: deployment
+        if: always()
+        run: |
+          if [ "${{ steps.deploy1.outcome }}" = "success" ]; then
+            echo "page_url=${{ steps.deploy1.outputs.page_url }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.deploy2.outcome }}" = "success" ]; then
+            echo "page_url=${{ steps.deploy2.outputs.page_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Page deployment failed after retry" >&2
+            exit 1
+          fi
