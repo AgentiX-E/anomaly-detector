@@ -13,6 +13,9 @@
 
 import { TrcfDetector } from './detect/trcf-detector.js'
 import { AnofoxForecaster } from './forecast/anofox-adapter.js'
+import { ForecastGuidedCalibrator } from './calibrate/forecast-guided.js'
+import { JointConfidenceCalibrator } from './calibrate/joint.js'
+import { AnomalyGuidedCalibrator } from './calibrate/anomaly-guided.js'
 import type {
   IAnomalyDetector,
   DetectorConfig,
@@ -61,6 +64,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
 
   const hooks = config?.hooks
   const forecaster = new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
+  const calibrator = createCalibrator(config?.calibrator?.mode ?? 'forecast-guided', config?.calibrator?.jointWeights)
 
   return {
     async analyze(
@@ -75,7 +79,8 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       const fResult = await forecaster.forecast(context, context.length > 0 ? Math.min(32, Math.floor(context.length / 4)) : 5)
       const t2 = Date.now()
 
-      // TODO(I3): Replace with real calibration
+      const t3_0 = Date.now()
+      const calResult = calibrator.calibrate(dResult, fResult, point)
       const t3 = Date.now()
 
       const result: AnalyzedPoint = {
@@ -91,10 +96,10 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
         q10: fResult.q10,
         q90: fResult.q90,
         horizon: fResult.horizon,
-        jointConfidence: dResult.confidence,
-        residual: 0,
-        intervalBreached: false,
-        calibrationMode: 'forecast-guided',
+        jointConfidence: calResult.jointConfidence,
+        residual: calResult.residual,
+        intervalBreached: calResult.intervalBreached,
+        calibrationMode: calResult.mode,
         analyzedAt: Date.now(),
         forecasterUsed: fResult.modelName,
         metadata: {},
@@ -103,7 +108,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       hooks?.onAnalyze?.({
         input: { point, contextLength: context.length },
         output: result,
-        duration: { detect: t1 - t0, forecast: t2 - t1, calibrate: t3 - t2, total: Date.now() - t0 },
+        duration: { detect: t1 - t0, forecast: t2 - t1, calibrate: t3 - t3_0, total: Date.now() - t0 },
         forecasterUsed: result.forecasterUsed,
       })
 
@@ -148,5 +153,13 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
     setState(state: AnalyzerState): void {
       detector.setState(state.detectorState)
     },
+  }
+}
+
+function createCalibrator(mode: string, weights?: { grade?: number; spread?: number; hitRate?: number; drift?: number }) {
+  switch (mode) {
+    case 'joint': return new JointConfidenceCalibrator(weights)
+    case 'anomaly-guided': return new AnomalyGuidedCalibrator()
+    default: return new ForecastGuidedCalibrator()
   }
 }
