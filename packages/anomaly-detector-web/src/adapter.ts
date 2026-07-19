@@ -45,8 +45,8 @@ export class TimesfmWebAdapter implements IForecaster {
     ) as { pointForecast?: Float64Array; quantileForecast?: number[][] }
     return {
       predicted: result.pointForecast ? Array.from(result.pointForecast) : [],
-      q10: result.quantileForecast?.[2] ?? [],
-      q90: result.quantileForecast?.[8] ?? [],
+      q10: result.quantileForecast?.[2] ? Array.from(result.quantileForecast[2]) : [],
+      q90: result.quantileForecast?.[8] ? Array.from(result.quantileForecast[8]) : [],
       horizon: horizon ?? this.config.horizon,
       modelName: this.modelName,
       predictedAt: Date.now(),

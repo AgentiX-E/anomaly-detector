@@ -26,8 +26,8 @@ export class TimesfmNodeAdapter implements IForecaster {
     )
     return {
       predicted: result.pointForecast ? Array.from(result.pointForecast) : [],
-      q10: result.quantileForecast ? (result.quantileForecast as number[][])[2] ?? [] : [],
-      q90: result.quantileForecast ? (result.quantileForecast as number[][])[8] ?? [] : [],
+      q10: result.quantileForecast ? Array.from((result.quantileForecast as number[][])[2] ?? []) : [],
+      q90: result.quantileForecast ? Array.from((result.quantileForecast as number[][])[8] ?? []) : [],
       horizon: horizon ?? this.config.horizon,
       modelName: this.modelName,
       predictedAt: Date.now(),
