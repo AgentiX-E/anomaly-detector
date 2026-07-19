@@ -26,6 +26,7 @@ import type { IAnomalyDetector, DetectorConfig, ForecasterType } from '@agentix-
  * ```
  */
 export function createNodeDetector(
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   config?: DetectorConfig & { forecaster?: { type?: ForecasterType; timesfm?: { model?: string; contextWindow?: number; horizon?: number } } }
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 ): IAnomalyDetector {
