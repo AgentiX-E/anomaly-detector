@@ -24,10 +24,14 @@ async function getWasmMod(): Promise<Record<string, unknown>> {
 }
 
 export class AnofoxForecaster implements IForecaster {
-  private selector = new AutoModelSelector(true)
+  private selector: AutoModelSelector
   private _modelName = 'AutoForecaster'
   readonly type: ForecasterType = 'anofox'
   get modelName(): string { return this._modelName }
+
+  constructor(enableAutoSelect = true) {
+    this.selector = new AutoModelSelector(enableAutoSelect)
+  }
 
   async forecast(context: DataPoint[], horizon: number): Promise<ForecastResult> {
     const mod = await getWasmMod()

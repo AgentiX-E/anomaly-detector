@@ -24,7 +24,7 @@ describe('AnofoxForecaster', () => {
     for (const v of r.predicted) expect(Math.abs(v - 50)).toBeLessThan(10)
   })
 
-  it.skip('trending data produces forecasts with interval bounds', async () => {
+  it('trending data produces forecasts with interval bounds', async () => {
     const fc = new AnofoxForecaster(false)
     const r = await fc.forecast(makeData(50, i => 50 + i * 0.5), 7)
     expect(r.predicted.length).toBeGreaterThan(0)
