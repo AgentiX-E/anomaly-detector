@@ -19,7 +19,7 @@
   "author": "AgentiX-E",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AgentiX-E/anomaly-detector",
+    "url": "git+https://github.com/AgentiX-E/anomaly-detector",
     "directory": "packages/anomaly-detector-core"
   },
   "type": "module",
