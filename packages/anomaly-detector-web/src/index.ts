@@ -1,4 +1,5 @@
 export { TimesfmWebAdapter } from './adapter.js'
+import type { TimesfmWebConfig } from "./adapter.js"
 export type { TimesfmWebConfig } from './adapter.js'
 export type { DataPoint, ForecastResult, ForecasterType, IForecaster } from './adapter.js'
 

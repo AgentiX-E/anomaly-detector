@@ -98,7 +98,7 @@ export class DimensionAttributor {
         const name = names[i]!
         const val = dp.dimensions[name]
         if (typeof val === 'number' && Number.isFinite(val)) {
-          sums[i] += val
+          sums[i] = (sums[i] ?? 0) + val
         }
       }
     }

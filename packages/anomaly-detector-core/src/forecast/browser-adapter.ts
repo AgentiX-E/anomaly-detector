@@ -49,12 +49,11 @@ export class BrowserAnofoxForecaster implements IForecaster {
 
     let predicted: number[]; let lower: number[]; let upper: number[]
     if (typeof model.predictWithIntervals === 'function') {
-      const raw = (model).predictWithIntervals as (h: number, c: number) => { values: Float64Array; lower: Float64Array; upper: Float64Array }
-      const r = raw.call(model, horizon, 0.90)
-      predicted = Array.from(r.values); lower = Array.from(r.lower); upper = Array.from(r.upper)
+      const raw = (model.predictWithIntervals as (h: number, c: number) => { values: Float64Array; lower: Float64Array; upper: Float64Array }).call(model, horizon, 0.90)
+      predicted = Array.from(raw.values); lower = Array.from(raw.lower); upper = Array.from(raw.upper)
     } else {
-      const raw = (model).predict as (h: number) => Float64Array
-      predicted = Array.from(raw.call(model, horizon))
+      const raw = (model.predict as (h: number) => Float64Array).call(model, horizon)
+      predicted = Array.from(raw); lower = []; upper = []
     }
     this._modelName = modelType
     return { predicted, q10: lower, q90: upper, horizon, modelName: modelType, predictedAt: Date.now() }

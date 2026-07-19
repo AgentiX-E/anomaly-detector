@@ -235,8 +235,6 @@ export class DriftDetector {
     let maxDiff = 0
 
     for (let i = 0; i < sorted.length; i++) {
-      if (i < n) cdfA = (i + 1) / n
-      if (i < m) cdfB = (i + 1) / m
       // Simplified: count how many from each set are ≤ current value
       let countA = 0, countB = 0
       for (const v of a) if (v <= sorted[i]!) countA++

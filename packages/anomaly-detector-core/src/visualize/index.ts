@@ -168,11 +168,11 @@ export function buildSparkline(
   const recent = context.slice(-Math.min(context.length, 60))
   const points = recent.map(p => ({ t: p.timestamp, v: p.value }))
   const first = recent[0]?.value ?? 0
-  const change = first > 0 ? ((point.value - first) / first) * 100 : 0
+  const change = first > 0 ? ((context.length > 0 ? (context[context.length - 1]?.value ?? 0) : 0 - first) / first) * 100 : 0
 
   return {
     name: metricName,
-    currentValue: point.value,
+    currentValue: context.length > 0 ? (context[context.length - 1]?.value ?? 0) : 0,
     status: point.jointConfidence > 0.9 ? 'critical' : point.jointConfidence > 0.8 ? 'warning' : 'normal',
     trend: Math.abs(change) < 1 ? 'flat' : change > 0 ? 'up' : 'down',
     trendPercent: Math.round(change * 10) / 10,

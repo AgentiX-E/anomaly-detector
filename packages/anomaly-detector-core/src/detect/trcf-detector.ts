@@ -132,7 +132,7 @@ export class TrcfDetector implements IDetector {
       normalize: this.config.normalize,
     }
     if (this.isMultivariate && this.dimensionNames.length > 0) {
-      this.detector = createMultiVariateDetector({ ...tc, dimensions: this.dimensionNames.length })
+      this.detector = createMultiVariateDetector({ ...tc, dimensions: this.dimensionNames.length } as any)
     } else {
       this.detector = createTimeSeriesDetector(tc)
     }

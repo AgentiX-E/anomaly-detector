@@ -38,6 +38,7 @@ export class TimesfmWebAdapter implements IForecaster {
 
   async forecast(context: DataPoint[], horizon: number): Promise<ForecastResult> {
     const engine = await this.ensureEngine()
+    // @ts-expect-error optional dependency type is unknown
     const result = await (engine as Record<string, unknown>).forecast(
       context.map(p => p.value),
       { contextLength: this.config.contextWindow, horizon: horizon ?? this.config.horizon }
