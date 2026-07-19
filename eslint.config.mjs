@@ -1,17 +1,22 @@
-import js from '@eslint/js'
-import ts from 'typescript-eslint'
+import tseslint from 'typescript-eslint'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+const rootDir =
+  typeof import.meta.dirname !== 'undefined'
+    ? import.meta.dirname
+    : dirname(fileURLToPath(import.meta.url))
 
 export default [
   { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**'] },
 
-  js.configs.recommended,
-  ...ts.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommendedTypeChecked,
 
   {
     languageOptions: {
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: rootDir,
       },
     },
     rules: {
@@ -27,11 +32,7 @@ export default [
 
   // Packages needing non-null assertions (noUncheckedIndexedAccess)
   {
-    files: [
-      'packages/anomaly-detector-core/src/**/*.ts',
-      'packages/anomaly-detector-node/src/**/*.ts',
-      'packages/anomaly-detector-web/src/**/*.ts',
-    ],
+    files: ['packages/*/src/**/*.ts'],
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
 
