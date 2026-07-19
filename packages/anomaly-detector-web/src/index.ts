@@ -1,32 +1,29 @@
 /**
- * @agentix-e/anomaly-detector-web
+ * @agentix-e/anomaly-detector-web — Browser entry point.
  *
- * Browser entry point for anomaly-detector.
- * Adds TimesFM foundation-model forecasting via ONNX Runtime Web.
- *
- * @example
- * ```typescript
- * import { createWebDetector } from '@agentix-e/anomaly-detector-web'
- *
- * const detector = createWebDetector({ forecaster: { type: 'timesfm' } })
- * const result = await detector.analyze(point, history)
- * ```
- *
- * @packageDocumentation
+ * Re-exports core + adds TimesfmWebAdapter.
+ * Use createWebDetector() for a pre-configured browser detector.
  */
-
 export { createDetector } from '@agentix-e/anomaly-detector-core'
+export { TimesfmWebAdapter } from './adapter.js'
+export type { TimesfmWebConfig } from './adapter.js'
 export type * from '@agentix-e/anomaly-detector-core'
 
-/**
- * Create a browser-optimized anomaly detector.
- * Enables TimesFM support when @agentix-e/timesfm-web is installed.
- *
- * TODO(I4): Implement TimesfmWebAdapter + createWebDetector factory.
- */
-export function createWebDetector() {
-  throw new Error(
-    'createWebDetector() not yet implemented (I4). ' +
-    'Use createDetector() from @agentix-e/anomaly-detector-core instead.'
-  )
+import { createDetector } from '@agentix-e/anomaly-detector-core'
+import { TimesfmWebAdapter } from './adapter.js'
+import type { IAnomalyDetector, DetectorConfig, ForecasterType } from '@agentix-e/anomaly-detector-core'
+
+export function createWebDetector(config?: DetectorConfig & { forecaster?: { type?: ForecasterType } }): IAnomalyDetector {
+  const fcType = config?.forecaster?.type
+
+  if (fcType === 'timesfm') {
+    try {
+      new TimesfmWebAdapter(config?.forecaster?.timesfm)
+      return createDetector({ ...config, forecaster: { type: 'custom' } })
+    } catch {
+      console.warn('TimesFM Web requested but not installed. Falling back to anofox-forecast.')
+    }
+  }
+
+  return createDetector(config)
 }

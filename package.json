@@ -26,5 +26,8 @@
     "node": ">=18.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.0.0"
+  "packageManager": "pnpm@10.0.0",
+  "dependencies": {
+    "@agentix-e/timesfm-core": "1.0.0"
+  }
 }
