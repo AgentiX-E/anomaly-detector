@@ -1,7 +1,7 @@
 {
   "name": "@agentix-e/anomaly-detector-core",
-  "version": "0.0.0",
-  "description": "Core anomaly detection engine for time-series — RRCF detection, multi-model forecasting, attribution, and drift detection. Works in Node.js and Browser.",
+  "version": "1.0.0",
+  "description": "Core anomaly detection engine for time-series \u2014 RRCF detection, multi-model forecasting, attribution, and drift detection. Works in Node.js and Browser.",
   "keywords": [
     "time-series",
     "anomaly-detection",

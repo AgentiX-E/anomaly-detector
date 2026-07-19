@@ -1,7 +1,7 @@
 {
   "name": "@agentix-e/anomaly-detector-web",
-  "version": "0.0.0",
-  "description": "Browser entry for anomaly-detector — adds TimesFM foundation-model forecasting via ONNX Runtime Web. TimesFM is opt-in — install @agentix-e/timesfm-web separately.",
+  "version": "1.0.0",
+  "description": "Browser entry for anomaly-detector \u2014 adds TimesFM foundation-model forecasting via ONNX Runtime Web. TimesFM is opt-in \u2014 install @agentix-e/timesfm-web separately.",
   "keywords": [
     "time-series",
     "anomaly-detection",
