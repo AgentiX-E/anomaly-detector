@@ -1,68 +1,78 @@
-# Anomaly Detector
+# @agentix-e/anomaly-detector
 
-> Embedded time-series anomaly detection engine for Node.js and Browser.
+Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).
+Zero-config startup — one line to production-grade anomaly detection with
+forecast-enhanced calibration.
 
-## Overview
-
-**@agentix-e/anomaly-detector** is the industry's first open-source TypeScript library that unifies **streaming anomaly detection**, **multi-model forecasting**, and **calibrated attribution** into a single, embedded engine. It runs entirely local — no cloud services, no API keys, no data egress.
-
-- **Dual-runtime**: Works in Node.js and Browser (Chrome/Firefox/Safari)
-- **RRCF detection** with leave-one-out Shapley dimension attribution
-- **40+ statistical models** (ARIMA/ETS/Theta/TBATS/GARCH) via anofox-forecast WASM
-- **Optional TimesFM** foundation-model for zero-shot forecasting
-- **Three calibration modes** fuse detection + forecast into a single `jointConfidence`
-- **Visualization-ready** output: 6 framework adapters (ECharts/Chart.js/Recharts/Nivo/Plot/D3)
-
-## Quick Start
-
-```typescript
+```ts
 import { createDetector } from '@agentix-e/anomaly-detector-core'
-
 const detector = createDetector()
 const result = await detector.analyze(point, history)
-
-// result.jointConfidence → 0.93
-// The caller defines their own threshold and alert logic.
-if (result.jointConfidence > 0.95) {
-  myAlertSystem.fire(result)
-}
+// result.jointConfidence → 0.93  ← your decision threshold
 ```
 
 ## Packages
 
-| Package | Description | Runtime |
-|---------|-------------|---------|
-| `@agentix-e/anomaly-detector-core` | Core engine (detect + forecast + calibrate) | Node.js + Browser |
-| `@agentix-e/anomaly-detector-node` | Node.js entry (TimesFM optional) | Node.js |
-| `@agentix-e/anomaly-detector-web` | Browser entry (TimesFM optional) | Browser |
+| Package | Runtime | Description |
+|---------|---------|-------------|
+| `@agentix-e/anomaly-detector-core` | Node + Browser | Detection, forecasting (anofox), calibration, utilities |
+| `@agentix-e/anomaly-detector-node` | Node.js | Adds TimesFM foundation-model forecasting |
+| `@agentix-e/anomaly-detector-web` | Browser | Adds TimesFM Web (onnxruntime-web) forecasting |
 
-## Architecture
+## Quick Start
 
-```
-DataPoint → [IDetector] → DetectionResult ─┐
-                                            ├→ [ICalibrator] → jointConfidence
-DataPoint → [IForecaster] → ForecastResult ─┘
+```bash
+npm install @agentix-e/anomaly-detector-core
 ```
 
-The library outputs a single number: `jointConfidence` [0, 1]. The caller decides thresholds, alert levels, and notification channels. **No business decisions baked into the engine.**
+```ts
+import { createDetector } from '@agentix-e/anomaly-detector-core'
 
-## DI Tokens
+// Zero config
+const detector = createDetector()
 
-All components are replaceable via the DI pattern:
+// Feed data points
+for (const point of stream) {
+  const result = await detector.analyze(point, history)
+  if (result.jointConfidence > 0.95) {
+    // Your alert logic here — the library outputs confidence, you decide
+    fireAlert(result)
+  }
+}
+```
 
-```typescript
-const detector = createDetector({
-  detector: new CustomDetector(),
-  forecaster: new CustomForecaster(),
-  calibrator: new JointCalibrator()
-})
+## Capabilities
+
+- **Streaming anomaly detection** — RRCF via trcf-ts, < 1ms per point
+- **Multivariate attribution** — leave-one-out Shapley decomposition
+- **Concept drift detection** — ADWIN / KSWIN with adaptive thresholds
+- **40+ forecasting models** — ARIMA, ETS, Theta, TBATS, GARCH, VAR via anofox-forecast WASM
+- **Three calibration modes** — Forecast-Guided, Anomaly-Guided, Joint Confidence
+- **Framework-agnostic charts** — `ChartData` output compatible with any visualization library
+- **TimesFM (optional)** — Google Research's foundation model for zero-shot forecasting
+- **State persistence** — versioned serialization for hot-reload
+
+## Philosophy
+
+**The library outputs confidence — you decide.** No hardcoded alert levels.
+No opinionated notification pipelines. Just a `jointConfidence` number and
+rich diagnostic data (attribution, drift, predictions, residuals).
+
+## Browser Support
+
+```ts
+// Same API, auto-detects browser runtime
+import { createDetector } from '@agentix-e/anomaly-detector-core'
+// Browser: uses BrowserAnofoxForecaster (fetch-based WASM)
+// Node: uses AnofoxForecaster (filesystem WASM)
 ```
 
 ## Documentation
 
-- [Product Whitepaper](./docs/whitepaper.md)
-- [Architecture Guide](./docs/architecture.md)
-- [API Reference](./docs/api.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Core API](./packages/anomaly-detector-core)
+- [Node.js (TimesFM)](./packages/anomaly-detector-node)
+- [Browser (TimesFM)](./packages/anomaly-detector-web)
 
 ## License
 
