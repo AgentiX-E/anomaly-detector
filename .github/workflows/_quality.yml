@@ -48,6 +48,7 @@ jobs:
           node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -r build
       - run: pnpm -r test:coverage
       - name: Merge coverage reports
         run: node scripts/merge-coverage.mjs
