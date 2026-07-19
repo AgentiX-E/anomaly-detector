@@ -1,4 +1,2 @@
-/**
- * forecast module — stub.
- * TODO: Implement in upcoming iteration.
- */
+export { AnofoxForecaster } from './anofox-adapter.js'
+export { AutoModelSelector } from './auto-select.js'

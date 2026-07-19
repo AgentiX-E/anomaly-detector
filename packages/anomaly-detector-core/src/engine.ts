@@ -12,6 +12,7 @@
  */
 
 import { TrcfDetector } from './detect/trcf-detector.js'
+import { AnofoxForecaster } from './forecast/anofox-adapter.js'
 import type {
   IAnomalyDetector,
   DetectorConfig,
@@ -59,6 +60,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
   })
 
   const hooks = config?.hooks
+  const forecaster = new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
 
   return {
     async analyze(
@@ -70,15 +72,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       const dResult = detect(point, context)
       const t1 = Date.now()
 
-      // TODO(I2): Replace with real forecast
-      const fResult: ForecastResult = {
-        predicted: [],
-        q10: [],
-        q90: [],
-        horizon: 0,
-        modelName: 'pending(I2)',
-        predictedAt: Date.now(),
-      }
+      const fResult = await forecaster.forecast(context, context.length > 0 ? Math.min(32, Math.floor(context.length / 4)) : 5)
       const t2 = Date.now()
 
       // TODO(I3): Replace with real calibration
@@ -102,7 +96,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
         intervalBreached: false,
         calibrationMode: 'forecast-guided',
         analyzedAt: Date.now(),
-        forecasterUsed: 'pending(I2)',
+        forecasterUsed: fResult.modelName,
         metadata: {},
       }
 
