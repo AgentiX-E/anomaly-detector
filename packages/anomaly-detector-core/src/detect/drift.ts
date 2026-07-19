@@ -233,8 +233,6 @@ export class DriftDetector {
     const n = a.length
     const m = b.length
     let maxDiff = 0
-    let cdfA = 0
-    let cdfB = 0
 
     for (let i = 0; i < sorted.length; i++) {
       if (i < n) cdfA = (i + 1) / n

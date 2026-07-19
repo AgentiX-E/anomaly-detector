@@ -26,7 +26,7 @@ export class TimesfmNodeAdapter implements IForecaster {
       { contextLength: this.config.contextWindow, horizon: horizon ?? this.config.horizon }
     )
     return {
-      predicted: result.pointForecast ? Array.from(result.pointForecast) as number[] : [],
+      predicted: result.pointForecast ? Array.from(result.pointForecast) : [],
       q10: result.quantileForecast ? (result.quantileForecast as number[][])[2] ?? [] : [],
       q90: result.quantileForecast ? (result.quantileForecast as number[][])[8] ?? [] : [],
       horizon: horizon ?? this.config.horizon,
@@ -39,8 +39,8 @@ export class TimesfmNodeAdapter implements IForecaster {
     if (this.engine) return this.engine
     try {
       const mod = await import('@agentix-e/timesfm-node')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.engine = new (mod as any).TimesFMNodeEngine({
+       
+      this.engine = new (mod).TimesFMNodeEngine({
         modelName: this.config.model,
         maxContext: this.config.contextWindow,
         maxHorizon: this.config.horizon,

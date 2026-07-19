@@ -47,13 +47,13 @@ export class BrowserAnofoxForecaster implements IForecaster {
     const model = new Mc()
     ;(model.fit as (t: unknown) => void)(ts)
 
-    let predicted: number[] = []; let lower: number[] = []; let upper: number[] = []
+    let predicted: number[]; let lower: number[]; let upper: number[]
     if (typeof model.predictWithIntervals === 'function') {
-      const raw = (model as Record<string, unknown>).predictWithIntervals as (h: number, c: number) => { values: Float64Array; lower: Float64Array; upper: Float64Array }
+      const raw = (model).predictWithIntervals as (h: number, c: number) => { values: Float64Array; lower: Float64Array; upper: Float64Array }
       const r = raw.call(model, horizon, 0.90)
       predicted = Array.from(r.values); lower = Array.from(r.lower); upper = Array.from(r.upper)
     } else {
-      const raw = (model as Record<string, unknown>).predict as (h: number) => Float64Array
+      const raw = (model).predict as (h: number) => Float64Array
       predicted = Array.from(raw.call(model, horizon))
     }
     this._modelName = modelType

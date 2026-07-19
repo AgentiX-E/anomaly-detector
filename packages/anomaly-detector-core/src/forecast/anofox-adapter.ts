@@ -40,7 +40,7 @@ export class AnofoxForecaster implements IForecaster {
     const modelType = this.selector.select(context)
     const M = mod as Record<string, new () => unknown>
     const Mc = M[modelType] ?? mod.AutoForecaster
-    const model = new (Mc as new () => Record<string, unknown>)() as Record<string, unknown>
+    const model = new (Mc as new () => Record<string, unknown>)()
     ;(model.fit as (t: unknown) => void)(ts)
 
     let predicted: number[] = []

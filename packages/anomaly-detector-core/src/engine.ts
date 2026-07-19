@@ -90,7 +90,7 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
     async analyze(
       point: DataPoint,
       context: DataPoint[],
-      opts?: { signal?: AbortSignal }
+      _opts?: { signal?: AbortSignal }
     ): Promise<AnalyzedPoint> {
       const t0 = Date.now()
       const dResult = detector.detect(point, context)
