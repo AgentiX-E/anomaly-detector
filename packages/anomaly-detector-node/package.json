@@ -1,7 +1,7 @@
 {
   "name": "@agentix-e/anomaly-detector-node",
   "version": "0.0.0",
-  "description": "Node.js entry for anomaly-detector \u2014 adds TimesFM foundation-model forecasting via ONNX Runtime. TimesFM is opt-in \u2014 install @agentix-e/timesfm-node separately.",
+  "description": "Node.js entry for anomaly-detector — adds TimesFM foundation-model forecasting via ONNX Runtime. TimesFM is opt-in — install @agentix-e/timesfm-node separately.",
   "keywords": [
     "time-series",
     "anomaly-detection",
@@ -59,7 +59,7 @@
     "@vitest/coverage-v8": "^3.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public",

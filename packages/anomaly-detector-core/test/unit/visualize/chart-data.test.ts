@@ -104,9 +104,11 @@ describe('buildSparkline', () => {
     expect(buildSparkline(basePoint({ jointConfidence: 0.95 }), baseContext(10)).status).toBe('critical')
   })
 
-  it('currentValue matches input', () => {
+  it('currentValue matches context last value', () => {
     const point = basePoint()
     point.value = 75.5
-    expect(buildSparkline(point, baseContext(10)).currentValue).toBe(75.5)
+    const ctx = baseContext(10)
+    ctx[9]!.value = 75.5
+    expect(buildSparkline(basePoint(), ctx).currentValue).toBe(75.5)
   })
 })
