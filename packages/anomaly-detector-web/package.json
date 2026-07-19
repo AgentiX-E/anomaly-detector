@@ -1,7 +1,7 @@
 {
   "name": "@agentix-e/anomaly-detector-web",
   "version": "0.0.0",
-  "description": "Browser entry for anomaly-detector \u2014 adds TimesFM foundation-model forecasting via ONNX Runtime Web. TimesFM is opt-in \u2014 install @agentix-e/timesfm-web separately.",
+  "description": "Browser entry for anomaly-detector — adds TimesFM foundation-model forecasting via ONNX Runtime Web. TimesFM is opt-in — install @agentix-e/timesfm-web separately.",
   "keywords": [
     "time-series",
     "anomaly-detection",
@@ -56,15 +56,18 @@
   "devDependencies": {
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.0.0",
+    "@vitest/browser": "^3.0.0",
+    "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
-    "@vitest/coverage-v8": "^3.0.0",
-    "@vitest/browser": "^3.0.0"
+    "vitest": "^3.0.0"
   },
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "optionalDependencies": {
+    "@agentix-e/timesfm-web": "1.0.0"
   }
 }
