@@ -1,35 +1,21 @@
 # @agentix-e/anomaly-detector
 
+[![CI](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/AgentiX-E/anomaly-detector/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-green)](https://nodejs.org/)
+
 Embedded time-series anomaly detection engine. Dual-runtime (Node.js + Browser).
 Zero-config startup — one line to production-grade anomaly detection with
 forecast-enhanced calibration.
 
-```ts
-import { createDetector } from '@agentix-e/anomaly-detector-core'
-const detector = createDetector()
-const result = await detector.analyze(point, history)
-// result.jointConfidence → 0.93  ← your decision threshold
-```
-
-## What is @agentix-e/anomaly-detector?
-
-`@agentix-e/anomaly-detector` is an **embedded time-series anomaly detection engine** that runs in both Node.js and the browser. It combines RRCF (Random Cut Forest) streaming detection, 40+ forecasting models (ARIMA, ETS, Theta, TBATS, GARCH, VAR), multivariate Shapley decomposition, concept drift detection, and optional TimesFM foundation-model forecasting — all behind a single `createDetector()` API.
-
-### When should I use it?
-
-- You need **real-time anomaly detection** on streaming time-series data (< 1ms per point)
-- You want **forecast-enhanced calibration** that adapts thresholds to predicted values
-- You need **multivariate attribution** to explain *why* a point is anomalous
-- You're building **monitoring, observability, or AIOps** tooling that runs embedded (not as a separate service)
-- You want the option of **zero-shot forecasting** via Google Research's TimesFM foundation model
-
 ## Packages
 
-| Package | Runtime | Description |
-|---------|---------|-------------|
-| `@agentix-e/anomaly-detector-core` | Node + Browser | Detection, forecasting (anofox), calibration, utilities |
-| `@agentix-e/anomaly-detector-node` | Node.js | Adds TimesFM foundation-model forecasting |
-| `@agentix-e/anomaly-detector-web` | Browser | Adds TimesFM Web (onnxruntime-web) forecasting |
+| Package | npm | Runtime | Description |
+|---------|-----|---------|-------------|
+| `@agentix-e/anomaly-detector-core` | [![npm](https://img.shields.io/npm/v/@agentix-e/anomaly-detector-core)](https://www.npmjs.com/package/@agentix-e/anomaly-detector-core) | Node + Browser | Detection, forecasting, calibration, utilities |
+| `@agentix-e/anomaly-detector-node` | [![npm](https://img.shields.io/npm/v/@agentix-e/anomaly-detector-node)](https://www.npmjs.com/package/@agentix-e/anomaly-detector-node) | Node.js | TimesFM foundation-model forecasting |
+| `@agentix-e/anomaly-detector-web` | [![npm](https://img.shields.io/npm/v/@agentix-e/anomaly-detector-web)](https://www.npmjs.com/package/@agentix-e/anomaly-detector-web) | Browser | TimesFM Web (onnxruntime-web) forecasting |
 
 ## Quick Start
 
@@ -40,14 +26,12 @@ npm install @agentix-e/anomaly-detector-core
 ```ts
 import { createDetector } from '@agentix-e/anomaly-detector-core'
 
-// Zero config
 const detector = createDetector()
 
-// Feed data points
 for (const point of stream) {
   const result = await detector.analyze(point, history)
   if (result.jointConfidence > 0.95) {
-    // Your alert logic here — the library outputs confidence, you decide
+    // Your alert logic — library outputs confidence, you decide the threshold
     fireAlert(result)
   }
 }
@@ -58,7 +42,7 @@ for (const point of stream) {
 - **Streaming anomaly detection** — RRCF via trcf-ts, < 1ms per point
 - **Multivariate attribution** — leave-one-out Shapley decomposition
 - **Concept drift detection** — ADWIN / KSWIN with adaptive thresholds
-- **40+ forecasting models** — ARIMA, ETS, Theta, TBATS, GARCH, VAR via anofox-forecast WASM
+- **40+ forecasting models** — ARIMA, ETS, Theta, TBATS, GARCH, VAR via anofox-forecast
 - **Three calibration modes** — Forecast-Guided, Anomaly-Guided, Joint Confidence
 - **Framework-agnostic charts** — `ChartData` output compatible with any visualization library
 - **TimesFM (optional)** — Google Research's foundation model for zero-shot forecasting
@@ -70,38 +54,49 @@ for (const point of stream) {
 No opinionated notification pipelines. Just a `jointConfidence` number and
 rich diagnostic data (attribution, drift, predictions, residuals).
 
-## Browser Support
+## Project Structure
 
-```ts
-// Same API, auto-detects browser runtime
-import { createDetector } from '@agentix-e/anomaly-detector-core'
-// Browser: uses BrowserAnofoxForecaster (fetch-based WASM)
-// Node: uses AnofoxForecaster (filesystem WASM)
+```
+anomaly-detector/
+├── packages/
+│   ├── anomaly-detector-core/    # Core analysis engine
+│   │   ├── src/
+│   │   │   ├── detect/           # TrcfDetector + Attribution + Drift
+│   │   │   ├── forecast/         # AnofoxForecaster + AutoModelSelector
+│   │   │   ├── calibrate/        # 3 calibration modes
+│   │   │   ├── visualize/        # Framework-agnostic ChartData
+│   │   │   ├── utils/            # classifyByLevels + suppressFlapping
+│   │   │   ├── engine.ts         # createDetector() factory
+│   │   │   └── types.ts          # All DI interfaces
+│   │   └── test/
+│   ├── anomaly-detector-node/    # TimesFM Node.js adapter
+│   └── anomaly-detector-web/     # TimesFM Browser adapter
+├── docs/
+│   ├── ARCHITECTURE.md
+│   └── index.html                # GitHub Pages landing
+└── .github/workflows/
+    ├── _quality.yml              # Reusable lint + typecheck + test
+    ├── ci.yml                    # CI + GitHub Pages
+    └── release.yml               # npm publish (OIDC)
 ```
 
-## Documentation
+## Documentation & Reports
 
-- [Architecture](./docs/ARCHITECTURE.md)
-- [Core API](./packages/anomaly-detector-core)
-- [Node.js (TimesFM)](./packages/anomaly-detector-node)
-- [Browser (TimesFM)](./packages/anomaly-detector-web)
+| Resource | Link |
+|----------|------|
+| Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Coverage Report | [agentix-e.github.io/anomaly-detector/coverage/](https://agentix-e.github.io/anomaly-detector/coverage/) |
+| GitHub Pages | [agentix-e.github.io/anomaly-detector/](https://agentix-e.github.io/anomaly-detector/) |
 
-## FAQ
+## Development
 
-### What makes this different from other anomaly detection libraries?
-Most libraries focus on a single algorithm (e.g., Isolation Forest). anomaly-detector combines **streaming RRCF detection**, **40+ forecasting models**, **Shapley attribution**, and **concept drift detection** in one unified API with dual Node.js + Browser runtime support.
-
-### Do I need TimesFM?
-No. TimesFM is completely optional. The core detector (`@agentix-e/anomaly-detector-core`) includes 40+ traditional forecasting models via anofox-forecast WASM. TimesFM adds foundation-model zero-shot forecasting but requires `@agentix-e/timesfm-node` or `@agentix-e/timesfm-web` as a separate install.
-
-### Can I use it for real-time streaming data?
-Yes. RRCF-based detection processes each point in < 1ms. The engine is designed for online/streaming scenarios — feed points one at a time and get immediate results.
-
-### How do I choose the calibration mode?
-Three modes available:
-- **Forecast-Guided** — thresholds adapt to predicted values (best for seasonal data)
-- **Anomaly-Guided** — thresholds adapt to anomaly distribution (best for sparse anomalies)
-- **Joint Confidence** — combines both (best general-purpose default)
+```bash
+pnpm install
+pnpm -r lint          # ESLint across all packages
+pnpm -r typecheck     # TypeScript type checking
+pnpm -r test          # Run all tests
+pnpm -r test:coverage # Tests with coverage reports
+```
 
 ## License
 
