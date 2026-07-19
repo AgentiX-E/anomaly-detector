@@ -9,11 +9,7 @@ import { createDetector } from '@agentix-e/anomaly-detector-core'
 import { TimesfmWebAdapter } from './adapter.js'
 import type { IAnomalyDetector, DetectorConfig } from '@agentix-e/anomaly-detector-core'
 
-export function createWebDetector(
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  config?: DetectorConfig & { forecaster?: { type?: 'timesfm'; timesfm?: Record<string, unknown> } }
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-): IAnomalyDetector {
+export function createWebDetector(config?: DetectorConfig): IAnomalyDetector {
   if (config?.forecaster?.type === 'timesfm') {
     try {
       const adapter = new TimesfmWebAdapter(config?.forecaster?.timesfm);
