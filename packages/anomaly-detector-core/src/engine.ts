@@ -12,7 +12,6 @@
  */
 
 import { TrcfDetector } from './detect/trcf-detector.js'
-import { AnofoxForecaster } from './forecast/anofox-adapter.js'
 import { ForecastGuidedCalibrator } from './calibrate/forecast-guided.js'
 import { JointConfidenceCalibrator } from './calibrate/joint.js'
 import { AnomalyGuidedCalibrator } from './calibrate/anomaly-guided.js'
@@ -66,7 +65,23 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
   const hooks = config?.hooks
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customForecaster = (config as any)?._customForecaster as IForecaster | undefined
-  const forecaster = customForecaster ?? new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
+  let _forecaster: IForecaster | null = null
+
+  async function getForecaster(): Promise<IForecaster> {
+    if (_forecaster) return _forecaster
+    if (customForecaster) {
+      _forecaster = customForecaster
+      return _forecaster
+    }
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const { BrowserAnofoxForecaster } = await import('./forecast/browser-adapter.js')
+      _forecaster = new BrowserAnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
+    } else {
+      const { AnofoxForecaster } = await import('./forecast/anofox-adapter.js')
+      _forecaster = new AnofoxForecaster(config?.forecaster?.anofox?.autoSelect ?? true)
+    }
+    return _forecaster
+  }
   const calibrator = createCalibrator(config?.calibrator?.mode ?? 'forecast-guided', config?.calibrator?.jointWeights)
 
   const DEFAULT_HORIZON = 10
@@ -82,7 +97,8 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
       const t1 = Date.now()
 
       const h = context.length > 0 ? Math.min(32, Math.floor(context.length / 4)) : DEFAULT_HORIZON
-      const fResult = await forecaster.forecast(context, h)
+      const fc = await getForecaster()
+      const fResult = await fc.forecast(context, h)
       const t2 = Date.now()
 
       const t3_0 = Date.now()
@@ -133,14 +149,16 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
     },
 
     async forecast(context: DataPoint[], horizon: number): Promise<ForecastResult> {
-      return forecaster.forecast(context, horizon)
+      const fc = await getForecaster()
+      return fc.forecast(context, horizon)
     },
 
     async warmup(): Promise<number> {
       const t0 = Date.now()
       detector.detect({ value: 0, timestamp: Date.now() }, [])
       // Also warm up the forecaster WASM
-      await forecaster.forecast([{ value: 0, timestamp: Date.now() }], 1)
+      const fc = await getForecaster()
+      await fc.forecast([{ value: 0, timestamp: Date.now() }], 1)
       return Date.now() - t0
     },
 

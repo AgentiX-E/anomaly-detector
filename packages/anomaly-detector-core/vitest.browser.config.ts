@@ -10,4 +10,10 @@ export default defineConfig({
       headless: true,
     },
   },
+  optimizeDeps: {
+    include: ['@sipemu/anofox-forecast'],
+  },
+  server: {
+    fs: { allow: ['/workspace/repos/anomaly-detector'] },
+  },
 })
