@@ -11,6 +11,7 @@ import type { IAnomalyDetector, DetectorConfig } from '@agentix-e/anomaly-detect
 
 export function createWebDetector(
   config?: DetectorConfig & { forecaster?: { type?: 'timesfm'; timesfm?: Record<string, unknown> } }
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 ): IAnomalyDetector {
   if (config?.forecaster?.type === 'timesfm') {
     try {

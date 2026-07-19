@@ -27,6 +27,7 @@ import type { IAnomalyDetector, DetectorConfig, ForecasterType } from '@agentix-
  */
 export function createNodeDetector(
   config?: DetectorConfig & { forecaster?: { type?: ForecasterType; timesfm?: { model?: string; contextWindow?: number; horizon?: number } } }
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 ): IAnomalyDetector {
   const fcType = config?.forecaster?.type
 
@@ -35,6 +36,7 @@ export function createNodeDetector(
       const adapter = new TimesfmNodeAdapter(config?.forecaster?.timesfm)
       // Inject the adapter via the custom forecaster hook
       const cfg = { ...config }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(cfg as any)._customForecaster = adapter
       return createDetector(cfg)
     } catch {
