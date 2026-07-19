@@ -1,18 +1,16 @@
 export { TimesfmWebAdapter } from './adapter.js'
-import type { TimesfmWebConfig } from "./adapter.js"
 export type { TimesfmWebConfig } from './adapter.js'
 export type { DataPoint, ForecastResult, ForecasterType, IForecaster } from './adapter.js'
 
-// Re-export core for convenience (callers who want createDetector etc.)
 export { createDetector } from '@agentix-e/anomaly-detector-core'
 export type { AnalyzedPoint, DetectionResult, CalibrationResult, DimensionAttribution, DriftInfo, DetectorConfig, IAnomalyDetector } from '@agentix-e/anomaly-detector-core'
 
 import { createDetector } from '@agentix-e/anomaly-detector-core'
 import { TimesfmWebAdapter } from './adapter.js'
-import type { IAnomalyDetector, DetectorConfig, ForecasterType } from '@agentix-e/anomaly-detector-core'
+import type { IAnomalyDetector, DetectorConfig } from '@agentix-e/anomaly-detector-core'
 
 export function createWebDetector(
-  config?: DetectorConfig & { forecaster?: { type?: ForecasterType; timesfm?: TimesfmWebConfig } }
+  config?: DetectorConfig & { forecaster?: { type?: 'timesfm'; timesfm?: Record<string, unknown> } }
 ): IAnomalyDetector {
   if (config?.forecaster?.type === 'timesfm') {
     try {

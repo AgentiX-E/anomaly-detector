@@ -20,7 +20,6 @@ export class TimesfmNodeAdapter implements IForecaster {
 
   async forecast(context: DataPoint[], horizon: number): Promise<ForecastResult> {
     const engine = await this.ensureEngine()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (engine as any).forecast(
       context.map(p => p.value),
       { contextLength: this.config.contextWindow, horizon: horizon ?? this.config.horizon }

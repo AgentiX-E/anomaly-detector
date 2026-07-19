@@ -35,7 +35,6 @@ export function createNodeDetector(
       const adapter = new TimesfmNodeAdapter(config?.forecaster?.timesfm)
       // Inject the adapter via the custom forecaster hook
       const cfg = { ...config }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(cfg as any)._customForecaster = adapter
       return createDetector(cfg)
     } catch {

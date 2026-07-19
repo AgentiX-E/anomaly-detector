@@ -63,7 +63,6 @@ export function createDetector(config?: DetectorConfig): IAnomalyDetector {
   })
 
   const hooks = config?.hooks
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customForecaster = (config as any)?._customForecaster as IForecaster | undefined
   let _forecaster: IForecaster | null = null
 
